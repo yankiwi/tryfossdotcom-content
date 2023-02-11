@@ -19,19 +19,19 @@ I considered Google’s [Workbox](https://developers.google.com/web/tools/workbo
 As per the tutorial I placed upup.min.js and upup.sw.min.js into my Hugo theme’s static folder.  This will place these at the root of the site when built which is important as the upup tutorial points out that the service worker files should be at the base of your hierarchy in order to keep everything you want to cache in scope.  In my instance, I also had to make a couple changes to upup.min.js.
 
 ##### FROM:
-```
+{{< highlight javascript >}}
 var n={"service-worker-url":"upup.sw.min.js"}
 ...AND...
 {scope:"./"}
-```
+{{< /highlight >}}
 ##### TO:
-```
+{{< highlight javascript >}}
 var n={"service-worker-url":"/upup.sw.min.js"}
 ...AND...
 {scope:"/"}
-```
+{{< /highlight >}}
 I also slightly modified the header script to include Hugo generated pages...
-```
+{{< highlight html >}}
 <script src="/upup.min.js"></script>
 <script>
     UpUp.start({
@@ -39,7 +39,7 @@ I also slightly modified the header script to include Hugo generated pages...
         'assets': ['/css/main.css', '/css/bulma.min.js']
     });
 </script>
-```
+{{< /highlight >}}
 
 ## Home Screen Icons:
 
