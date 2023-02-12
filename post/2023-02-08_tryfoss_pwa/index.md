@@ -47,4 +47,6 @@ Setting up home screen icons was almost too easy thanks to [realfavicongenerator
 
 ## Results:
 
-<a href="/img/2018-07-23-hugo-pwa/lighthouse.png"><img src="/img/2018-07-23-hugo-pwa/lighthouse.png" class="img-fluid" alt="Lighthouse results"></a>
+![Lighthouse Score](lighthouse.png)
+
+Live: [pagespeed.web.dev/report?url=https://tryfoss.com](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftryfoss.com)
