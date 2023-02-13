@@ -41,11 +41,11 @@ I also slightly modified the header script to include Hugo generated pages...
 </script>
 {{< /highlight >}}
 
-## Home Screen Icons:
+## Home Screen Icons
 
 Setting up home screen icons was almost too easy thanks to [realfavicongenerator.net](https://realfavicongenerator.net/).  They claim they'll have you sorted in 5 minutes and that's pretty close even when importing into Hugo.  They deliver all of the icon files and the head code required.  I just copied the icon files into my theme's static folder and pasted the code into my theme's header partial file. 
 
-## Results:
+## Results
 
 ![Lighthouse Score](lighthouse.png)
 
