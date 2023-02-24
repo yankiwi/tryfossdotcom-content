@@ -13,7 +13,7 @@ draft: false
 
 ## Get the Icons
 
-To get the Ionicons SVG files, I'll be using [Hugo Modules](https://gohugo.io/hugo-modules/).  Modules are nice because they let you specify a single file or directory within a git repository.  In our case, we just want the svg directory.  So I add the following to me config.toml file.
+To get the Ionicons SVG files, I'll be using [Hugo Modules](https://gohugo.io/hugo-modules/).  Modules are nice because they let you specify a single file or directory within a git repository.  In our case, we just want the svg directory.  So I add the following to my config.toml file.
 
 {{< highlight toml >}}
 [module]
