@@ -2,7 +2,7 @@
 title: A Hugo Development Environment
 date: 2023-02-25
 tags: ["hugo", "docker", "git"]
-draft: true
+draft: false
 ---
 
 ## Introduction
@@ -11,16 +11,32 @@ As I've mentioned before, this site is built with [Hugo](https://gohugo.io/) as 
 
 Previously, I did this with git submodules with the help of [Andrew Hoog's Guide](https://www.andrewhoog.com/post/git-submodule-for-hugo-themes/).  But recently Hugo has incorporated Golang's module feature as [Hugo Modules](https://gohugo.io/hugo-modules/) which has made things much easier.  You could use Hugo Modules locally of course, but what I've found works best for me is to leverage Docker Compose locally and use Modules for pushing the site to Production.  This takes a bit of work upfront but makes the development and maintenance of my Hugo sites much nicer in the long run.
 
-## Getting Started
+## Setting up the Hugo Environment
 
 Create a main directory for your project.
 
 {{< highlight bash >}}
-mkdir paddysprojects
+mkdir tryfossdotcom
 {{< /highlight >}}
 
-Create a docker-compose.yaml file.
+Create a .gitignore file.
+{{< highlight bash>}}
+### Hugo ###
+# Generated files by hugo
+/src/public/
+/src/resources/_gen/
+/src/assets/jsconfig.json
+/src/hugo_stats.json
 
+# Temporary lock file while building
+/src/.hugo_build.lock
+
+# Docker compose dev
+/themes/
+/content/
+{{< /highlight>}}
+
+Then create a docker-compose.yaml file.
 {{< highlight yaml >}}
 version: "3.4"
 
@@ -59,51 +75,157 @@ services:
 
 What's nice about this is that we don't have to install Go and Hugo to get the project started.  We can use the klakegg/hugo Docker image.
 
+Execute ASH to get to the command line on the "serve" container:
+{{< highlight bash >}}
+docker compose run serve /bin/ash
+{{< /highlight >}}
 
+Then, in the "serve" container, create your new site in /src and add some content:
+{{< highlight bash >}}
+hugo new site /src
+cd /src
+hugo new post/my-first-post.md
+exit
+{{< /highlight >}}
+Add some content to my-first-post.md and change draft to false.
 
-To get the Ionicons SVG files, I'll be using [Hugo Modules](https://gohugo.io/hugo-modules/).  Modules are nice because they let you specify a single file or directory within a git repository.  In our case, we just want the svg directory.  So I add the following to me config.toml file.
+Back outside of the container, clone a theme into the ./themes directory.  In my case, I'll be using my own theme.
+{{< highlight bash >}}
+cd themes
+git clone https://github.com/yankiwi/tryfossdotcom-theme ./tryfossdotcom
+cd ..
+cp -r ./themes/tryfossdotcom/exampleSite/config ./src
+rm config.toml
+{{< /highlight >}}
 
+My theme is already configured for a [configuration directory](https://gohugo.io/getting-started/configuration/#configuration-directory).
+
+You can check it out at: https://github.com/yankiwi/tryfossdotcom-site/tree/main/src/config
+
+But the key are elements are this.  You need to remove theme = from the _default/config.toml file.  Place this is the development/config.toml file.  You don't want it in production as you'll be using a module in production.
+
+#### ./config/_default/config.toml
 {{< highlight toml >}}
+baseURL      = "/"
+languageCode = "en-nz"
+timeZone     = "Pacific/Auckland"
+title        = "TryFOSS.com"
+paginate     = 24
+copyright    = "2023 TryFOSS.com.  All rights reserved."
+
+[Author]
+name  = "TryFOSS.com"
+email = "patrick@tryfoss.com"
+github = "tryfossdotcom"
+
+[params]
+rss              = true
+comments         = true
+readingTime      = true
+wordCount        = true
+useHLJS          = true
+socialShare      = true
+delayDisqus      = true
+showRelatedPosts = true
+
+[params.hero]
+    title    = "TryFOSS.com"
+    subtitle = "Trying to use FOSS where ever possible."
+[params.hero.logo]
+    src     = "/img/_logo.svg"
+    height  = "64"
+    width   = "64"
+    alt     = "TryFOSS.com"
+
+[[menu.main]]
+    name       = "Home"
+    url        = "/"
+    weight     = 1
+
+[[menu.main]]
+    name       = "Posts"
+    url        = "/post/"
+    weight     = 2
+
+[[menu.main]]
+    name       = "About"
+    url        = "/about/"
+    weight     = 3
+
+[[menu.main]]
+    name       = "Tags"
+    url        = "/tags/"
+    weight     = 4
+
+[[menu.main]]
+    name       = "Subscribe"
+    url        = "/subscribe/"
+    weight     = 5
+
 [module]
     [[module.imports]]
         path = "github.com/ionic-team/ionicons"
         disable = false
         [[module.imports.mounts]]
             source = "src/svg"
-            target = "assets/svg/ionicon"
+            target = "assets/svg/ionicons"
 {{< /highlight >}}
 
-{{< ionicon "sunny" "16" "16" "#ff0000" >}}
-
-##### FROM:
-{{< highlight javascript >}}
-var n={"service-worker-url":"upup.sw.min.js"}
-...AND...
-{scope:"./"}
+#### ./config/production/config.toml
+{{< highlight toml >}}
+[module]
+    [[module.imports]]
+        path = "github.com/yankiwi/tryfossdotcom-theme"
+        disable = false
+        [[module.imports.mounts]]
+            source = "archetypes"
+            target = "archetypes"
+        [[module.imports.mounts]]
+            source = "assets"
+            target = "assets"
+        [[module.imports.mounts]]
+            source = "data"
+            target = "data"
+        [[module.imports.mounts]]
+            source = "layouts"
+            target = "layouts"
+        [[module.imports.mounts]]
+            source = "static"
+            target = "static"
+    [[module.imports]]
+        path = "github.com/yankiwi/tryfossdotcom-content"
+        disable = false
+        [[module.imports.mounts]]
+            source = "."
+            target = "content"
+    [[module.imports]]
+        path = "github.com/ionic-team/ionicons"
+        disable = false
+        [[module.imports.mounts]]
+            source = "src/svg"
+            target = "assets/svg/ionicons"
 {{< /highlight >}}
-##### TO:
-{{< highlight javascript >}}
-var n={"service-worker-url":"/upup.sw.min.js"}
-...AND...
-{scope:"/"}
-{{< /highlight >}}
-I also slightly modified the header script to include Hugo generated pages...
-{{< highlight html >}}
-<script src="/upup.min.js"></script>
-<script>
-    UpUp.start({
-        'content-url': '{{ .Page.Permalink }}',
-        'assets': ['/css/main.css', '/css/bulma.min.js']
-    });
-</script>
+
+#### ./config/development/config.toml
+{{< highlight toml >}}
+theme        = "tryfossdotcom"
+
+[module]
+    [[module.imports]]
+        path = "github.com/ionic-team/ionicons"
+        disable = false
+        [[module.imports.mounts]]
+            source = "src/svg"
+            target = "assets/svg/ionicons"
 {{< /highlight >}}
 
-## Home Screen Icons:
+Run the build compose service once to create any modules needed in the development environment, such as [our Ionicons]({{< ref "2023-02-12_ionicons_in_hugo" >}} "our Ionicons") setup.
+{{< highlight bash >}}
+docker compose up build
+{{< /highlight >}}
 
-Setting up home screen icons was almost too easy thanks to [realfavicongenerator.net](https://realfavicongenerator.net/).  They claim they'll have you sorted in 5 minutes and that's pretty close even when importing into Hugo.  They deliver all of the icon files and the head code required.  I just copied the icon files into my theme's static folder and pasted the code into my theme's header partial file. 
+## Run the Development Container
 
-## Results:
-
-![Lighthouse Score](lighthouse.png)
-
-Live: [pagespeed.web.dev/report?url=https://tryfoss.com](https://pagespeed.web.dev/report?url=https%3A%2F%2Ftryfoss.com)
+{{< highlight bash >}}
+docker compose up serve
+{{< /highlight >}}
