@@ -1,5 +1,5 @@
 ---
-title: First post!
+title: First Post!
 date: 2023-02-03
 tags: ["first"]
 ---
